@@ -14,11 +14,43 @@
 ;;
 
 (setq ring-bell-function 'ignore)
+
+;; because M-S-< stopped working 
 (global-set-key (kbd "C-<") 'end-of-buffer)
+
+;; delete current selection when typing
 (delete-selection-mode 1)
+
+;; disable unusefull and distracting commands
 (put 'erase-buffer 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
+
+;; Theme
+(load-theme 'badwolf t)
+
+;;Disable start page
+(setq inhibit-startup-screen t)
+
+
+;; Autopair
+(autopair-global-mode 1)
+
+;; Anzu mode
+(global-anzu-mode +1)
+
+;; Switching windows
+(global-set-key (kbd "C-x <up>") 'windmove-up)
+(global-set-key (kbd "C-x <down>") 'windmove-down)
+(global-set-key (kbd "C-x <right>") 'windmove-right)
+(global-set-key (kbd "C-x <left>") 'windmove-left)
+
+;;Speedbar
+(global-set-key (kbd "C-<tab> b") 'sr-speedbar-toggle)
+(setq sr-speedbar-skip-other-window-p t)
+
+;;Hippie-Expand
+(define-key elpy-mode-map (kbd "C-S-x") 'hippie-expand)
 
 ;; Backward line kill
 (defun backward-kill-line (arg)
@@ -26,10 +58,15 @@
 	(kill-line (- 1 arg)))
 (global-set-key (kbd "C-j") 'backward-kill-line)
 
-;; Delete selection on keyboard input
-(delete-selection-mode 1)
-
-
+;; Smart move to line beginning
+;; C-a now move the point to the beginning of the indentation
+(defun smart-line-beginning ()
+    (interactive)
+    (let ((pt (point)))
+      (beginning-of-line-text)
+      (when (eq pt (point))
+        (beginning-of-line))))
+(global-set-key (kbd "C-a") 'smart-line-beginning)
 
 
 ;;
@@ -44,7 +81,10 @@
 ;;
 ;; Linum mode
 ;;
+
 (global-linum-mode 1)
+
+;; set fixed height to 100, so linum works while zooming in/out
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -57,43 +97,18 @@
 ;; Magit
 ;;
 
+
 (global-set-key (kbd "C-x g") 'magit-status)
 
 
-;; Theme
-
-(load-theme 'badwolf t)
-
-;;Autopair
-(autopair-global-mode 1)
-
-;; Anzu mode
-(global-anzu-mode +1)
-
-
-;;Smart move to line beginning
-(defun smart-line-beginning ()
-    (interactive)
-    (let ((pt (point)))
-      (beginning-of-line-text)
-      (when (eq pt (point))
-	      (beginning-of-line))))
-
-(global-set-key (kbd "C-a") 'smart-line-beginning)
 
 ;;Flycheck
 (add-hook 'after-init-hook #'global-flycheck-mode)
-
-
 
 ;;Company mode
 (require 'company)
 (global-company-mode t)
 (add-to-list 'company-backends 'company-c-headers)
-
-
-;;Disable start page
-(setq inhibit-startup-screen t)
 
 
 ;;
@@ -117,19 +132,6 @@
 ;; kill ring in helm / disabled for now
 ;; (global-set-key (kbd "M-y") 'helm-show-kill-ring)
 
-;; Windmove
-(global-set-key (kbd "C-x <up>") 'windmove-up)
-(global-set-key (kbd "C-x <down>") 'windmove-down)
-(global-set-key (kbd "C-x <right>") 'windmove-right)
-(global-set-key (kbd "C-x <left>") 'windmove-left)
-
-
-;;Speedbar
-
-(global-set-key (kbd "C-<tab> b") 'sr-speedbar-toggle)
-(setq sr-speedbar-skip-other-window-p t)
-
-
 ;; Fuzzy matching for buffers
 (setq helm-buffers-fuzzy-matching t
       helm-recentf-fuzzy-match    t)
@@ -140,9 +142,6 @@
 
 (package-initialize)
 (elpy-enable)
-
-;;Hippie-Expand
-(define-key elpy-mode-map (kbd "C-S-x") 'hippie-expand)
 
 
 (require 'py-autopep8)
@@ -219,19 +218,13 @@
 
 ;;Latex
 
-;;; Anpassungen für AUCTeX
+;; AUCTeX
 (load "auctex.el" nil t t)
 (load "preview-latex.el" nil t t)
 (require 'tex-site)
 
-;;; Anpassungen für RefTeX
+;; RefTeX
 (require 'reftex)
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex) 
 (add-hook 'latex-mode-hook 'turn-on-reftex)
 (setq TeX-PDF-mode t)
-
-
-;; Spell-checking
- 
-(setq ispell-program-name "ispell")
-(setq ispell-dictionary "english")
