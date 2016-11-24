@@ -50,7 +50,7 @@
 (setq sr-speedbar-skip-other-window-p t)
 
 ;;Hippie-Expand
-(define-key elpy-mode-map (kbd "C-S-x") 'hippie-expand)
+(global-set-key (kbd "C-S-x") 'hippie-expand)
 
 ;; Backward line kill
 (defun backward-kill-line (arg)
@@ -167,6 +167,15 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(TeX-view-program-selection
+   (quote
+    (((output-dvi has-no-display-manager)
+      "dvi2tty")
+     ((output-dvi style-pstricks)
+      "dvips and gv")
+     (output-dvi "xdvi")
+     (output-pdf "Okular")
+     (output-html "xdg-open"))))
  '(company-idle-delay 0)
  '(flymake-allowed-file-name-masks
    (quote
@@ -184,7 +193,7 @@
  '(global-company-mode t)
  '(package-selected-packages
    (quote
-    (anzu markdown-mode ssh magit helm-projectile flycheck company-c-headers sr-speedbar helm-gtags ggtags undo-tree py-autopep8 nyan-mode helm elpy better-defaults badwolf-theme autopair)))
+    (caml flycheck-ocaml merlin auctex anzu markdown-mode ssh magit helm-projectile flycheck company-c-headers sr-speedbar helm-gtags ggtags undo-tree py-autopep8 nyan-mode helm elpy better-defaults badwolf-theme autopair)))
  '(speedbar-verbosity-level 0)
  '(sr-speedbar-default-width 20))
 
@@ -214,17 +223,27 @@
 (define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
 (define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
 
+;;
+;; Ocaml
+;;
+
+;; Load tuareg
+(load "/home/omar/.opam/system/share/emacs/site-lisp/tuareg-site-file")
 
 
-;;Latex
 
-;; AUCTeX
-(load "auctex.el" nil t t)
-(load "preview-latex.el" nil t t)
-(require 'tex-site)
+;;
+;; Auctex
+;;
 
-;; RefTeX
-(require 'reftex)
-(add-hook 'LaTeX-mode-hook 'turn-on-reftex) 
-(add-hook 'latex-mode-hook 'turn-on-reftex)
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(setq-default TeX-master nil)
+
+(add-hook 'LaTeX-mode-hook 'visual-line-mode)
+(add-hook 'LaTeX-mode-hook 'flyspell-mode)
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+
+(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+(setq reftex-plug-into-AUCTeX t)
 (setq TeX-PDF-mode t)
