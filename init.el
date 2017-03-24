@@ -1,13 +1,13 @@
 ;;
 ;; Melpa
 ;;
-(require 'package) ;; You might already have this line
+(require 'package)
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/"))
 (when (< emacs-major-version 24)
-  ;; For important compatibility libraries like cl-lib
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
-(package-initialize) ;; You might already have this line
+(package-initialize)
+
 
 ;;
 ;; Stuff
@@ -16,10 +16,11 @@
 (setq ring-bell-function 'ignore)
 
 ;; because M-S-< stopped working 
-(global-set-key (kbd "C-<") 'end-of-buffer)
+;; (global-set-key (kbd "C-<") 'end-of-buffer)
+;; works again
 
 ;; delete current selection when typing
-(delete-selection-mode 1)
+(delete-selection-mode t)
 
 ;; disable unusefull and distracting commands
 (put 'erase-buffer 'disabled nil)
@@ -34,10 +35,13 @@
 
 
 ;; Autopair
-(autopair-global-mode 1)
+(autopair-global-mode t)
 
 ;; Anzu mode
 (global-anzu-mode +1)
+
+;; Bind Anzu
+(bind-key "M-R" 'anzu-query-replace)
 
 ;; Switching windows
 (global-set-key (kbd "C-x <up>") 'windmove-up)
@@ -45,27 +49,35 @@
 (global-set-key (kbd "C-x <right>") 'windmove-right)
 (global-set-key (kbd "C-x <left>") 'windmove-left)
 
-;;Speedbar
-(global-set-key (kbd "C-<tab> b") 'sr-speedbar-toggle)
-(setq sr-speedbar-skip-other-window-p t)
+;; Remove annoying keybindings
+(global-unset-key (kbd "C-x C-<left>"))
+(global-unset-key (kbd "C-x C-<up>"))
+(global-unset-key (kbd "C-x C-<right>"))
+(global-unset-key (kbd "C-x C-<down>"))
+
+
+;; Bind find file in project which works with git/svn
+(bind-key "M-F" 'find-file-in-project)
+
+
 
 ;;Hippie-Expand
 (global-set-key (kbd "C-S-x") 'hippie-expand)
 
 ;; Backward line kill
 (defun backward-kill-line (arg)
-	(interactive "p")
-	(kill-line (- 1 arg)))
+  (interactive "p")
+  (kill-line (- 1 arg)))
 (global-set-key (kbd "C-j") 'backward-kill-line)
 
 ;; Smart move to line beginning
 ;; C-a now move the point to the beginning of the indentation
 (defun smart-line-beginning ()
-    (interactive)
-    (let ((pt (point)))
-      (beginning-of-line-text)
-      (when (eq pt (point))
-        (beginning-of-line))))
+  (interactive)
+  (let ((pt (point)))
+    (beginning-of-line-text)
+    (when (eq pt (point))
+      (beginning-of-line))))
 (global-set-key (kbd "C-a") 'smart-line-beginning)
 
 
@@ -82,7 +94,7 @@
 ;; Linum mode
 ;;
 
-(global-linum-mode 1)
+(global-linum-mode t)
 
 ;; set fixed height to 100, so linum works while zooming in/out
 (custom-set-faces
@@ -101,16 +113,10 @@
 (global-set-key (kbd "C-x g") 'magit-status)
 
 
-
-;;Flycheck
-(add-hook 'after-init-hook #'global-flycheck-mode)
-
-;;Company mode
+;; Company mode
 (require 'company)
 (global-company-mode t)
-(add-to-list 'company-backends 'company-c-headers)
-
-
+ 
 ;;
 ;; Helm
 ;;
@@ -140,110 +146,63 @@
 ;; Python
 ;;
 
-(package-initialize)
-(elpy-enable)
+;; (package-initialize)
+;; (elpy-enable)
 
+;; (require 'py-autopep8)
+;; (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
 
-(require 'py-autopep8)
-(add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+;; ;;Avoid conflict between elpy and company
 
-;;Avoid conflict between elpy and company
+;; (defun company-yasnippet-or-completion ()
+;;   "Solve company yasnippet conflicts."
+;;   (interactive)
+;;   (let ((yas-fallback-behavior
+;;          (apply 'company-complete-common nil)))
+;;     (yas-expand)))
 
-(defun company-yasnippet-or-completion ()
-  "Solve company yasnippet conflicts."
-  (interactive)
-  (let ((yas-fallback-behavior
-         (apply 'company-complete-common nil)))
-    (yas-expand)))
+;; (add-hook 'company-mode-hook
+;;           (lambda ()
+;;             (substitute-key-definition
+;;              'company-complete-common
+;;              'company-yasnippet-or-completion
+;;              company-active-map)))
 
-(add-hook 'company-mode-hook
-          (lambda ()
-            (substitute-key-definition
-             'company-complete-common
-             'company-yasnippet-or-completion
-             company-active-map)))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(TeX-view-program-selection
-   (quote
-    (((output-dvi has-no-display-manager)
-      "dvi2tty")
-     ((output-dvi style-pstricks)
-      "dvips and gv")
-     (output-dvi "xdvi")
-     (output-pdf "Okular")
-     (output-html "xdg-open"))))
- '(company-idle-delay 0)
- '(flymake-allowed-file-name-masks
-   (quote
-    (("\\.\\(?:c\\(?:pp\\|xx\\|\\+\\+\\)?\\|CC\\)\\'" flymake-simple-make-init nil nil)
-     ("\\.xml\\'" flymake-xml-init nil nil)
-     ("\\.html?\\'" flymake-xml-init nil nil)
-     ("\\.cs\\'" flymake-simple-make-init nil nil)
-     ("\\.p[ml]\\'" flymake-perl-init nil nil)
-     ("\\.php[345]?\\'" flymake-php-init nil nil)
-     ("\\.h\\'" flymake-master-make-header-init flymake-master-cleanup nil)
-     ("\\.java\\'" flymake-simple-make-java-init flymake-simple-java-cleanup nil)
-     ("[0-9]+\\.tex\\'" flymake-master-tex-init flymake-master-cleanup nil)
-     ("\\.tex\\'" flymake-simple-tex-init nil nil)
-     ("\\.idl\\'" flymake-simple-make-init nil nil))))
- '(global-company-mode t)
- '(package-selected-packages
-   (quote
-    (caml flycheck-ocaml merlin auctex anzu markdown-mode ssh magit helm-projectile flycheck company-c-headers sr-speedbar helm-gtags ggtags undo-tree py-autopep8 nyan-mode helm elpy better-defaults badwolf-theme autopair)))
- '(speedbar-verbosity-level 0)
- '(sr-speedbar-default-width 20))
-
-
-;;
-;; C / C++
-;;
-
-(setq
- helm-gtags-ignore-case t
- helm-gtags-auto-update t
- helm-gtags-use-input-at-cursor t
- helm-gtags-pulse-at-cursor t
- helm-gtags-prefix-key "\C-cg"
- helm-gtags-suggested-key-mapping t
- )
-
-(require 'helm-gtags)
-;; Enable helm-gtags-mode
-(add-hook 'c-mode-hook 'helm-gtags-mode)
-(add-hook 'c++-mode-hook 'helm-gtags-mode)
-
-(define-key helm-gtags-mode-map (kbd "C-c g a") 'helm-gtags-tags-in-this-function)
-(define-key helm-gtags-mode-map (kbd "C-j") 'helm-gtags-select)
-(define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-dwim)
-(define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
-(define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-(define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
 
 ;;
 ;; Ocaml
 ;;
 
 ;; Load tuareg
-(load "/home/omar/.opam/system/share/emacs/site-lisp/tuareg-site-file")
+;; (load "/home/omar/.opam/4.03.0/share/emacs/site-lisp/tuareg.el")
+;; (require 'opam-user-setup "~/.emacs.d/opam-user-setup.el")
+
+;;
+;; JavaScript
+;;
+
+;; js2-mode
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+
+;; tern
+(add-hook 'js-mode-hook (lambda () (tern-mode t)))
+
+;; company-tern
+(add-to-list 'company-backends 'company-tern)
 
 
 
 ;;
-;; Auctex
+;; Auto-generated
 ;;
 
-(setq TeX-auto-save t)
-(setq TeX-parse-self t)
-(setq-default TeX-master nil)
 
-(add-hook 'LaTeX-mode-hook 'visual-line-mode)
-(add-hook 'LaTeX-mode-hook 'flyspell-mode)
-(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-
-(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
-(setq reftex-plug-into-AUCTeX t)
-(setq TeX-PDF-mode t)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(company-idle-delay 0)
+ '(package-selected-packages
+   (quote
+    (company-tern tern js2-refactor bind-key free-keys js2-mode w3m undo-tree tuareg ssh py-autopep8 nyan-mode merlin markdown-mode magit jedi helm-projectile helm-gtags flycheck elpy company-c-headers better-defaults badwolf-theme autopair auctex anzu))))
