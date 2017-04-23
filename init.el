@@ -8,6 +8,24 @@
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize)
 
+; list the packages you want
+(setq package-list '(autopair anzu nlinum magit company helm elpy tuareg merlin
+			      yasnippet js2-mode tern company-tern rtags company-rtags
+			      irony flycheck cmake-ide bind-key undo-tree py-autopep8
+			      company-irony-c-headers flycheck-rtags zenburn-theme better-defaults))
+
+; activate all the packages (in particular autoloads)
+(package-initialize)
+
+; fetch the list of packages available 
+(unless package-archive-contents
+  (package-refresh-contents))
+
+; install the missing packages
+(dolist (package package-list)
+  (unless (package-installed-p package)
+    (package-install package)))
+
 
 ;;
 ;; Stuff
@@ -28,7 +46,7 @@
 (put 'upcase-region 'disabled nil)
 
 ;; Theme
-(load-theme 'manoj-dark t)
+(load-theme 'zenburn t)
 
 ;; Font size for external monitor
 
@@ -96,7 +114,7 @@
 
 
 ;;
-;; Linum mode
+;; nlinum mode
 ;;
 
 ;;(global-linum-mode t)
@@ -108,7 +126,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(linum ((t (:background "#000000" :foreground "#666462" :height 100)))))
+ '(linum ((t (:background "#3f3f3f" :foreground "#666462" :height 100)))))
 
 
 ;;
@@ -178,20 +196,20 @@
 
 
 ;;
-;; Ocaml
-;;
+;; ;; Ocaml
+;; ;;
 
-;; Load tuareg
-(load "/home/omar/.opam/4.03.0/share/emacs/site-lisp/tuareg.el")
-(require 'opam-user-setup "~/.emacs.d/opam-user-setup.el")
-(require 'tuareg)
+;; ;; Load tuareg
+;; (load "/home/omar/.opam/4.03.0/share/emacs/site-lisp/tuareg.el")
+;; (require 'opam-user-setup "~/.emacs.d/opam-user-setup.el")
+;; (require 'tuareg)
 
-;; Load merlin mode
-(let ((opam-share (ignore-errors (car (process-lines "opam" "config" "var" "share")))))
-  (when (and opam-share (file-directory-p opam-share))
-    (add-to-list 'load-path (expand-file-name "emacs/site-lisp" opam-share))
-    (autoload 'merlin-mode "merlin" nil t nil)
-    (add-hook 'tuareg-mode-hook 'merlin-mode t)))
+;; ;; Load merlin mode
+;; (let ((opam-share (ignore-errors (car (process-lines "opam" "config" "var" "share")))))
+;;   (when (and opam-share (file-directory-p opam-share))
+;;     (add-to-list 'load-path (expand-file-name "emacs/site-lisp" opam-share))
+;;     (autoload 'merlin-mode "merlin" nil t nil)
+;;     (add-hook 'tuareg-mode-hook 'merlin-mode t)))
 
 ;;
 ;; JavaScript
