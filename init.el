@@ -28,11 +28,16 @@
 (put 'upcase-region 'disabled nil)
 
 ;; Theme
-(load-theme 'badwolf t)
+(load-theme 'manoj-dark t)
+
+;; Font size for external monitor
+
+(defun set-font-size (size)
+  (interactive "nFont size: ")
+  (set-face-attribute 'default nil :height size))
 
 ;;Disable start page
 (setq inhibit-startup-screen t)
-
 
 ;; Autopair
 (autopair-global-mode t)
@@ -94,7 +99,8 @@
 ;; Linum mode
 ;;
 
-(global-linum-mode t)
+;;(global-linum-mode t)
+(global-nlinum-mode t)
 
 ;; set fixed height to 100, so linum works while zooming in/out
 (custom-set-faces
@@ -102,13 +108,12 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(linum ((t (:background "#222120" :foreground "#666462" :height 100)))))
+ '(linum ((t (:background "#000000" :foreground "#666462" :height 100)))))
 
 
 ;;
 ;; Magit
 ;;
-
 
 (global-set-key (kbd "C-x g") 'magit-status)
 
@@ -116,7 +121,10 @@
 ;; Company mode
 (require 'company)
 (global-company-mode t)
- 
+;; keybind
+(global-set-key (kbd "<C-tab>") 'company-complete)
+
+
 ;;
 ;; Helm
 ;;
@@ -146,27 +154,27 @@
 ;; Python
 ;;
 
-;; (package-initialize)
-;; (elpy-enable)
+(package-initialize)
+(elpy-enable)
 
-;; (require 'py-autopep8)
-;; (add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
+(require 'py-autopep8)
+(add-hook 'python-mode-hook 'py-autopep8-enable-on-save)
 
-;; ;;Avoid conflict between elpy and company
+;;Avoid conflict between elpy and company
 
-;; (defun company-yasnippet-or-completion ()
-;;   "Solve company yasnippet conflicts."
-;;   (interactive)
-;;   (let ((yas-fallback-behavior
-;;          (apply 'company-complete-common nil)))
-;;     (yas-expand)))
+(defun company-yasnippet-or-completion ()
+  "Solve company yasnippet conflicts."
+  (interactive)
+  (let ((yas-fallback-behavior
+         (apply 'company-complete-common nil)))
+    (yas-expand)))
 
-;; (add-hook 'company-mode-hook
-;;           (lambda ()
-;;             (substitute-key-definition
-;;              'company-complete-common
-;;              'company-yasnippet-or-completion
-;;              company-active-map)))
+(add-hook 'company-mode-hook
+          (lambda ()
+            (substitute-key-definition
+             'company-complete-common
+             'company-yasnippet-or-completion
+             company-active-map)))
 
 
 ;;
@@ -174,8 +182,16 @@
 ;;
 
 ;; Load tuareg
-;; (load "/home/omar/.opam/4.03.0/share/emacs/site-lisp/tuareg.el")
-;; (require 'opam-user-setup "~/.emacs.d/opam-user-setup.el")
+(load "/home/omar/.opam/4.03.0/share/emacs/site-lisp/tuareg.el")
+(require 'opam-user-setup "~/.emacs.d/opam-user-setup.el")
+(require 'tuareg)
+
+;; Load merlin mode
+(let ((opam-share (ignore-errors (car (process-lines "opam" "config" "var" "share")))))
+  (when (and opam-share (file-directory-p opam-share))
+    (add-to-list 'load-path (expand-file-name "emacs/site-lisp" opam-share))
+    (autoload 'merlin-mode "merlin" nil t nil)
+    (add-hook 'tuareg-mode-hook 'merlin-mode t)))
 
 ;;
 ;; JavaScript
@@ -184,13 +200,100 @@
 ;; js2-mode
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 
+
+
+
+(defun my-tern-mode-config ()
+  "For use in 'tern-mode-hook'."
+  (local-set-key (kbd "C-c C-t") 'tern-get-type)
+  (local-unset-key (kbd "C-c C-c"))
+  ;; Todo
+  )
+
+
 ;; tern
 (add-hook 'js-mode-hook (lambda () (tern-mode t)))
+(add-hook 'tern-mode-hook 'my-tern-mode-config)
+
 
 ;; company-tern
 (add-to-list 'company-backends 'company-tern)
 
+;; (require 'indium)
+;; (add-hook 'js-mode-hook #'indium-interaction-mode)
 
+
+
+;; 
+;; C/C++
+;; 
+
+(require 'rtags)
+(require 'company-rtags)
+
+(setq rtags-completions-enabled t)
+(eval-after-load 'company
+  '(add-to-list
+    'company-backends 'company-rtags))
+(setq rtags-autostart-diagnostics t)
+(rtags-enable-standard-keybindings)
+
+;; To index a C/C++ project:
+;; $ rdm &
+;; $ cd /path/to/project/root
+;; $ cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+;; $ rc -J .
+
+(add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'objc-mode-hook 'irony-mode)
+
+(defun my-irony-mode-hook ()
+  (define-key irony-mode-map [remap completion-at-point]
+    'irony-completion-at-point-async)
+  (define-key irony-mode-map [remap complete-symbol]
+    'irony-completion-at-point-async))
+
+(add-hook 'irony-mode-hook 'my-irony-mode-hook)
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+;; Irony also needs:
+;; $ cd /path/to/project/root
+;; $ cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+
+(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+(setq company-backends (delete 'company-semantic company-backends))
+
+(require 'company-irony-c-headers)
+(eval-after-load 'company
+  '(add-to-list
+    'company-backends '(company-irony-c-headers company-irony)))
+
+;; flycheck
+
+(add-hook 'c++-mode-hook 'flycheck-mode)
+(add-hook 'c-mode-hook 'flycheck-mode)
+
+
+;; integrating rtags with flycheck
+(require 'flycheck-rtags)
+
+(defun my-flycheck-rtags-setup ()
+  (flycheck-select-checker 'rtags)
+  (setq-local flycheck-highlighting-mode nil) ;; RTags creates more accurate overlays.
+  (setq-local flycheck-check-syntax-automatically nil))
+;; c-mode-common-hook is also called by c++-mode
+(add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
+
+;; integrating flycheck with irony (or the other way around)
+
+(eval-after-load 'flycheck
+'(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+
+(cmake-ide-setup)
+
+;; To have cmake-ide automatically create a compilation commands file in your project root create a .dir-locals.el containing the following:
+;; ((nil . ((cmake-ide-build-dir . "<PATH_TO_PROJECT_BUILD_DIRECTORY>"))))
 
 ;;
 ;; Auto-generated
@@ -203,6 +306,14 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(company-idle-delay 0)
+ '(custom-safe-themes
+   (quote
+    ("203dfe036c9a450718efdd871a89ee7a6599129ac605c041d543d09831070a44" default)))
+ '(frame-resize-pixelwise t)
  '(package-selected-packages
    (quote
-    (company-tern tern js2-refactor bind-key free-keys js2-mode w3m undo-tree tuareg ssh py-autopep8 nyan-mode merlin markdown-mode magit jedi helm-projectile helm-gtags flycheck elpy company-c-headers better-defaults badwolf-theme autopair auctex anzu))))
+    (ggtags xpm flycheck-irony company-irony-c-headers company-irony irony rtags nlinum js3-mode indium company-tern tern bind-key free-keys w3m undo-tree tuareg ssh py-autopep8 nyan-mode merlin markdown-mode magit jedi helm-projectile helm-gtags flycheck elpy company-c-headers better-defaults badwolf-theme autopair auctex anzu)))
+ '(safe-local-variable-values
+   (quote
+    ((company-clang-arguments "-I/home/omar/projects/javascript/blocks2/server/lib")))))
+
