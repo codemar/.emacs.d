@@ -12,7 +12,8 @@
 (setq package-list '(autopair anzu nlinum magit company helm elpy tuareg merlin
 			      yasnippet js2-mode tern company-tern rtags company-rtags
 			      irony flycheck cmake-ide bind-key undo-tree py-autopep8
-			      company-irony-c-headers flycheck-rtags zenburn-theme better-defaults))
+			      company-irony-c-headers flycheck-rtags zenburn-theme better-defaults flycheck-irony
+                              company-irony rust-mode racer electric eldoc flycheck-rust))
 
 ; activate all the packages (in particular autoloads)
 (package-initialize)
@@ -58,7 +59,8 @@
 (setq inhibit-startup-screen t)
 
 ;; Autopair
-(autopair-global-mode t)
+(electric-pair-mode 1)
+(show-paren-mode 1)
 
 ;; Anzu mode
 (global-anzu-mode +1)
@@ -233,6 +235,11 @@
 (add-hook 'js-mode-hook (lambda () (tern-mode t)))
 (add-hook 'tern-mode-hook 'my-tern-mode-config)
 
+(setenv "PATH" (concat (getenv "PATH") ":/home/omar/node_modules/tern/bin/"))
+    (setq exec-path (append exec-path '("/home/omar/node_modules/tern/bin/")))
+
+
+
 
 ;; company-tern
 (add-to-list 'company-backends 'company-tern)
@@ -243,72 +250,72 @@
 
 
 ;; 
-;; C/C++
-;; 
+;; ;; C/C++
+;; ;; 
 
-(require 'rtags)
-(require 'company-rtags)
+;; (require 'rtags)
+;; (require 'company-rtags)
 
-(setq rtags-completions-enabled t)
-(eval-after-load 'company
-  '(add-to-list
-    'company-backends 'company-rtags))
-(setq rtags-autostart-diagnostics t)
-(rtags-enable-standard-keybindings)
+;; (setq rtags-completions-enabled t)
+;; (eval-after-load 'company
+;;   '(add-to-list
+;;     'company-backends 'company-rtags))
+;; (setq rtags-autostart-diagnostics t)
+;; (rtags-enable-standard-keybindings)
 
-;; To index a C/C++ project:
-;; $ rdm &
-;; $ cd /path/to/project/root
-;; $ cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=1
-;; $ rc -J .
+;; ;; To index a C/C++ project:
+;; ;; $ rdm &
+;; ;; $ cd /path/to/project/root
+;; ;; $ cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+;; ;; $ rc -J .
 
-(add-hook 'c++-mode-hook 'irony-mode)
-(add-hook 'c-mode-hook 'irony-mode)
-(add-hook 'objc-mode-hook 'irony-mode)
+;; (add-hook 'c++-mode-hook 'irony-mode)
+;; (add-hook 'c-mode-hook 'irony-mode)
+;; (add-hook 'objc-mode-hook 'irony-mode)
 
-(defun my-irony-mode-hook ()
-  (define-key irony-mode-map [remap completion-at-point]
-    'irony-completion-at-point-async)
-  (define-key irony-mode-map [remap complete-symbol]
-    'irony-completion-at-point-async))
+;; (defun my-irony-mode-hook ()
+;;   (define-key irony-mode-map [remap completion-at-point]
+;;     'irony-completion-at-point-async)
+;;   (define-key irony-mode-map [remap complete-symbol]
+;;     'irony-completion-at-point-async))
 
-(add-hook 'irony-mode-hook 'my-irony-mode-hook)
-(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+;; (add-hook 'irony-mode-hook 'my-irony-mode-hook)
+;; (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
 
-;; Irony also needs:
-;; $ cd /path/to/project/root
-;; $ cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+;; ;; Irony also needs:
+;; ;; $ cd /path/to/project/root
+;; ;; $ cmake . -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 
-(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
-(setq company-backends (delete 'company-semantic company-backends))
+;; (add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+;; (setq company-backends (delete 'company-semantic company-backends))
 
-(require 'company-irony-c-headers)
-(eval-after-load 'company
-  '(add-to-list
-    'company-backends '(company-irony-c-headers company-irony)))
+;; (require 'company-irony-c-headers)
+;; (eval-after-load 'company
+;;   '(add-to-list
+;;     'company-backends '(company-irony-c-headers company-irony)))
 
-;; flycheck
+;; ;; flycheck
 
-(add-hook 'c++-mode-hook 'flycheck-mode)
-(add-hook 'c-mode-hook 'flycheck-mode)
+;; (add-hook 'c++-mode-hook 'flycheck-mode)
+;; (add-hook 'c-mode-hook 'flycheck-mode)
 
 
-;; integrating rtags with flycheck
-(require 'flycheck-rtags)
+;; ;; integrating rtags with flycheck
+;; (require 'flycheck-rtags)
 
-(defun my-flycheck-rtags-setup ()
-  (flycheck-select-checker 'rtags)
-  (setq-local flycheck-highlighting-mode nil) ;; RTags creates more accurate overlays.
-  (setq-local flycheck-check-syntax-automatically nil))
-;; c-mode-common-hook is also called by c++-mode
-(add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
+;; (defun my-flycheck-rtags-setup ()
+;;   (flycheck-select-checker 'rtags)
+;;   (setq-local flycheck-highlighting-mode nil) ;; RTags creates more accurate overlays.
+;;   (setq-local flycheck-check-syntax-automatically nil))
+;; ;; c-mode-common-hook is also called by c++-mode
+;; (add-hook 'c-mode-common-hook #'my-flycheck-rtags-setup)
 
-;; integrating flycheck with irony (or the other way around)
+;; ;; integrating flycheck with irony (or the other way around)
 
-(eval-after-load 'flycheck
-'(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+;; (eval-after-load 'flycheck
+;; '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
-(cmake-ide-setup)
+;; (cmake-ide-setup)
 
 ;; To have cmake-ide automatically create a compilation commands file in your project root create a .dir-locals.el containing the following:
 ;; ((nil . ((cmake-ide-build-dir . "<PATH_TO_PROJECT_BUILD_DIRECTORY>"))))
@@ -316,6 +323,23 @@
 ;;
 ;; Auto-generated
 ;;
+
+
+;;
+;; Rust
+;;
+
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
+(add-hook 'rust-mode-hook  #'racer-mode)
+(add-hook 'rust-mode-hook  #'flycheck-mode)
+(add-hook 'racer-mode-hook #'eldoc-mode)
+(add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
+(add-hook 'rust-mode-hook
+          '(lambda ()
+	     (setq racer-cmd (concat (getenv "HOME") "/.cargo/bin/racer"))
+	     (setq racer-rust-src-path (concat (getenv "HOME") "/.multirust/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"))
+             (local-set-key (kbd "TAB") #'company-indent-or-complete-common)
+             (cargo-minor-mode 1)))
 
 
 (custom-set-variables
@@ -330,8 +354,14 @@
  '(frame-resize-pixelwise t)
  '(package-selected-packages
    (quote
-    (ggtags xpm flycheck-irony company-irony-c-headers company-irony irony rtags nlinum js3-mode indium company-tern tern bind-key free-keys w3m undo-tree tuareg ssh py-autopep8 nyan-mode merlin markdown-mode magit jedi helm-projectile helm-gtags flycheck elpy company-c-headers better-defaults badwolf-theme autopair auctex anzu)))
+    (cargo rust-mode ggtags xpm flycheck-irony company-irony-c-headers company-irony irony rtags nlinum js3-mode indium company-tern tern bind-key free-keys w3m undo-tree tuareg ssh py-autopep8 nyan-mode merlin markdown-mode magit jedi helm-projectile helm-gtags flycheck elpy company-c-headers better-defaults badwolf-theme autopair auctex anzu)))
  '(safe-local-variable-values
    (quote
     ((company-clang-arguments "-I/home/omar/projects/javascript/blocks2/server/lib")))))
+
+
+
+
+
+
 
