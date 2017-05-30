@@ -13,7 +13,7 @@
 			      yasnippet js2-mode tern company-tern rtags company-rtags
 			      irony flycheck cmake-ide bind-key undo-tree py-autopep8
 			      company-irony-c-headers flycheck-rtags zenburn-theme better-defaults flycheck-irony
-                              company-irony rust-mode racer electric eldoc flycheck-rust))
+                              company-irony rust-mode racer electric eldoc flycheck-rust cargo))
 
 ; activate all the packages (in particular autoloads)
 (package-initialize)
@@ -329,6 +329,11 @@
 ;; Rust
 ;;
 
+;
+;; To use race-mode, racer needs to be installed and the rust sources need to be downloaded:
+;; cargo install racer
+;; rustup component add rust-src
+
 (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 (add-hook 'rust-mode-hook  #'racer-mode)
 (add-hook 'rust-mode-hook  #'flycheck-mode)
@@ -336,8 +341,6 @@
 (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)
 (add-hook 'rust-mode-hook
           '(lambda ()
-	     (setq racer-cmd (concat (getenv "HOME") "/.cargo/bin/racer"))
-	     (setq racer-rust-src-path (concat (getenv "HOME") "/.multirust/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"))
              (local-set-key (kbd "TAB") #'company-indent-or-complete-common)
              (cargo-minor-mode 1)))
 
